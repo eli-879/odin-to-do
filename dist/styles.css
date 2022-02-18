@@ -83,6 +83,11 @@ body {
 }
 
 .form-body-wrapper {
+    display: none;
+
+}
+
+.form-body-wrapper.active {
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -207,6 +212,10 @@ body {
     border-radius: 5px;
 }
 
+.project-tag:hover, .project-tag.active {
+    background-color: #39A9DB;
+}
+
 .delete-project {
     margin-left: auto;
     background-color: #1C77C3;
@@ -220,10 +229,6 @@ body {
     background-color: #39A9DB;
 }
 
-.project-tag:hover, .project-tag:active {
-    background-color: #39A9DB;
-}
-
 .task-area {
     background-color: #40BCD8;
     width: 100%;
@@ -234,7 +239,7 @@ body {
 }
 
 .task-container-priority {
-    height: ;
+    height: 10px;
 }
 
 .task-container-priority.priority-high {

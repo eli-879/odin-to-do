@@ -59,9 +59,12 @@ class UI {
 
         const infoArea = document.createElement("div");
         infoArea.classList.add("form-infoarea");
-        this.formPages.push(this.createFormBodyElementsTask());
-        this.formPages.push(this.createFormBodyElementsProject());
-        infoArea.appendChild(this.formPages[0]);
+        //this.formPages.push(this.createFormBodyElementsTask());
+        //this.formPages.push(this.createFormBodyElementsProject());
+        infoArea.appendChild(this.createFormBodyElementsTask());
+        infoArea.appendChild(this.createFormBodyElementsProject());
+        infoArea.firstChild.classList.toggle("active");
+
         body.appendChild(infoArea);
         
         form.appendChild(body);
@@ -70,7 +73,8 @@ class UI {
         button.classList.add("close-form");
         button.innerText = "Close";
         button.addEventListener("click", () => {
-            this.resetFormValues();
+            this.toggleForm();
+            
         });
         form.appendChild(button);
 
@@ -103,6 +107,7 @@ class UI {
         const wrapper = document.createElement("form");
         wrapper.classList.add("form-body-wrapper");
         wrapper.setAttribute("onsubmit", "return false");
+        wrapper.setAttribute("id", "task-wrapper");
 
         // for todo title
         const titleArea = document.createElement("textarea");
@@ -207,19 +212,23 @@ class UI {
     }
 
     createFormBodyElementsProject() {
-        const wrapper = document.createElement("div");
+        const wrapper = document.createElement("form");
         wrapper.classList.add("form-body-wrapper");
+        wrapper.setAttribute("onsubmit", "return false");
+        wrapper.setAttribute("id", "project-wrapper");
 
         const textarea = document.createElement("textarea");
         textarea.classList.add("form-textarea-title");
         textarea.classList.add("textarea-nonresize");
+        textarea.classList.add("project-textarea");
         textarea.placeholder = "Enter Name of Project Here";
         wrapper.appendChild(textarea);
 
-        const confirmButton = document.createElement("button");
-        confirmButton.classList.add("form-submit-task");
+        const confirmButton = document.createElement("input");
+        confirmButton.classList.add("form-submit-project");
+        confirmButton.type = "submit";
+        confirmButton.value = "Confirm";
         confirmButton.setAttribute("id", "project");
-        confirmButton.innerText = "Confirm";
 
         wrapper.appendChild(confirmButton);
 
@@ -229,11 +238,12 @@ class UI {
     initFormElements() {
         this.initFormSidebarElements();
         this.initFormBodyElementsTask();
+        this.initFormBodyElementsProject();
         
     }
 
     initFormBodyElementsTask() {
-        const form = document.querySelector(".form-body-wrapper");
+        const form = document.getElementById("task-wrapper");
         const boundHandleTaskCreation = this.handleTaskCreation.bind(this);
         form.addEventListener("submit", boundHandleTaskCreation);
 
@@ -245,6 +255,14 @@ class UI {
         });
     }
 
+    initFormBodyElementsProject() {
+        const form = document.getElementById("project-wrapper");
+        console.log(form);
+
+        const boundHandleProjectCreation = this.handleProjectCreation.bind(this);
+        form.addEventListener("submit", boundHandleProjectCreation);
+    }
+
     initFormSidebarElements() {
         
         const selectors = document.querySelectorAll(".form-sidebar-selector");
@@ -252,7 +270,6 @@ class UI {
         
         const boundHandleChangeFormSelector = this.handleChangeFormSelector.bind(this);
         selectors.forEach(element => {
-            console.log(this);
             element.addEventListener("click", boundHandleChangeFormSelector);
         });
     }
@@ -279,18 +296,27 @@ class UI {
         target.classList.toggle("active");
 
         // wipe and redraw 
-        const formBody = document.querySelector(".form-infoarea");
-        this.clearElementChildren(formBody);
+        //const formBody = document.querySelector(".form-infoarea");
+        //this.clearElementChildren(formBody);
 
         //console.log(this.formPages);
+
+        const taskBody = document.getElementById("task-wrapper");
+        const projectBody = document.getElementById("project-wrapper");
+
+        taskBody.classList.remove("active");
+        projectBody.classList.remove("active");
         
-        if (target.getAttribute("id") === "task") this.addElementToParent(this.formPages[0], formBody);
-        else if (target.getAttribute("id") === "project") this.addElementToParent(this.formPages[1], formBody);
+        if (target.getAttribute("id") === "task") {
+            taskBody.classList.toggle("active");
+        }
+        else if (target.getAttribute("id") === "project") {
+            projectBody.classList.toggle("active");
+        }
         
     }
 
     handleTaskCreation(e) {
-        console.log("HI");
         const title = document.querySelector(".form-textarea-title").value;
         const desc = document.querySelector(".form-textarea-desc").value;
         const dueDate = document.querySelector(".form-textarea-datecalendar").value;
@@ -310,10 +336,11 @@ class UI {
         this.addElementToParent(taskListElement, taskArea);
         
         this.resetFormValues();
+        this.toggleForm();
     }
 
     handleProjectCreation(e) {
-        const title = document.querySelector(".form-textarea-title").value;
+        const title = document.querySelector(".project-textarea").value;
 
         const newProject = new Project(title, this.idCounter);
         this.idCounter++;
@@ -321,10 +348,11 @@ class UI {
 
         const sidebarBody = document.querySelector(".sidebar-body");
         this.clearElementChildren(sidebarBody);
-
+        console.log(projectStorage.getProjectList());
         this.renderAllProjects();
         this.initProjectButtons();
 
+        this.resetFormValues();
         this.toggleForm();
     }
 
@@ -340,8 +368,22 @@ class UI {
         console.log(priorityElements);
         Array.from(priorityElements).forEach(element => {element.classList.remove("active")});
 
+        // reset which tab open
+        const taskBody = document.getElementById("task-wrapper");
+        const projectBody = document.getElementById("project-wrapper");
+        taskBody.classList.remove("active");
+        projectBody.classList.remove("active");
+        taskBody.classList.toggle("active");
+
+        //reset tab selector
+        const selectors = document.querySelectorAll(".form-sidebar-selector");
+        Array.from(selectors).forEach(element => {
+            element.classList.remove("active");
+        })
+        console.log(selectors);
+        Array.from(selectors)[0].classList.toggle("active");
         //console.log(projectStorage.getProjectList()[activeProject]);
-        this.toggleForm();
+        
     }
 
     createNav() {
@@ -417,11 +459,13 @@ class UI {
         tag.setAttribute("id", project.getID());
         wrapper.appendChild(tag);
 
-        const deleteButton = document.createElement("button");
-        deleteButton.classList.add("delete-project");
-        deleteButton.innerText = "X";
-        wrapper.appendChild(deleteButton);
-    
+        if (project.getID() > 1) {
+            const deleteButton = document.createElement("button");
+            deleteButton.classList.add("delete-project");
+            deleteButton.innerText = "X";
+            wrapper.appendChild(deleteButton);
+        }
+        
         return wrapper;
     }
 
@@ -525,17 +569,29 @@ class UI {
     }
 
     handleDeleteProject(e) {
-        const projectTag = e.target.parentElement.firstChild.getAttribute("id");
-        projectStorage.removeProject(projectTag);
+        const projectTag = e.target.parentElement.firstChild;
+        const projectID = projectTag.getAttribute("id")
+        
+        if ((projectTag.classList.contains("active"))) {
+            console.log(projectTag);
+            const taskContainer = document.querySelector(".task-container");
+            this.clearElementChildren(taskContainer);
+        }
 
         const sidebarBody = document.querySelector(".sidebar-body");
         this.clearElementChildren(sidebarBody);
+        
+        projectStorage.removeProject(projectID);
 
         this.renderAllProjects();
         this.initProjectButtons();
+
+        document.getElementById("0").click();
     }
     
     handleAddProject(e) {
+        this.resetFormValues();
+
         this.toggleForm();
     }
 
@@ -543,7 +599,7 @@ class UI {
         const taskArea = document.querySelector(".task-area-body");
         this.clearElementChildren(taskArea);
 
-        const projectList = document.querySelector(".sidebar-body").children;
+        const projectList = document.querySelectorAll(".project-tag");
         Array.from(projectList).forEach((element) => {  
             element.classList.remove("active"); 
         });
@@ -589,6 +645,7 @@ class UI {
         blurTarget.classList.toggle("active");
         const form = document.getElementById("form-overlay");
         form.classList.toggle("active");
+
     }
 
     setActive(elementList) {

@@ -12,6 +12,10 @@ export default class ProjectStorage {
     }
 
     removeProject(index) {
-        this.projectList.splice(index, 1);
+        for (let i = 0; i < this.projectList.length; i++) {
+            if (this.projectList[i].getID() === parseInt(index)) {
+                this.projectList.splice(i, 1);
+            }
+        }
     }
 }
