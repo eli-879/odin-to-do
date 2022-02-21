@@ -6,11 +6,14 @@ let projectStorage = new ProjectStorage();
 class UI {
     constructor() {
         this.formPages = [];
+        this.currentEdit = "";
         this.idCounter = 2;
     }
 
     loadPage() {
+        document.getElementById("content").classList.toggle("active");
         this.addElementToParent(this.createNewForm(), document.body);
+        this.addElementToParent(this.createEditPage(), document.body);
         
         this.addToDocumentContent(this.createNav());
         this.addToDocumentContent(this.createBodyElements());
@@ -73,7 +76,7 @@ class UI {
         button.classList.add("close-form");
         button.innerText = "Close";
         button.addEventListener("click", () => {
-            this.toggleForm();
+            this.toggleOverlay("content");
             
         });
         form.appendChild(button);
@@ -115,6 +118,7 @@ class UI {
         titleArea.placeholder = "Enter Task Here";
         titleArea.classList.add("textarea-nonresize");
         titleArea.required = true;
+        titleArea.maxLength = "30";
         wrapper.appendChild(titleArea);
 
         // for todo description
@@ -122,6 +126,7 @@ class UI {
         descArea.classList.add("form-textarea-desc");
         descArea.placeholder = "Enter Task description here";
         descArea.classList.add("textarea-nonresize");
+        
         wrapper.appendChild(descArea);
 
         // for todo due date
@@ -154,6 +159,7 @@ class UI {
         const priorityLowLabel = document.createElement("label");
         priorityLowLabel.setAttribute("for", "priorityLow");
         priorityLowLabel.classList.add("form-textarea-label");
+        priorityLowLabel.classList.add("priority-button");
         priorityLowLabel.classList.add("low");
         priorityLowLabel.value = "low";
         priorityLowLabel.innerText = "LOW";
@@ -170,6 +176,7 @@ class UI {
         const priorityMediumLabel = document.createElement("label");
         priorityMediumLabel.setAttribute("for", "priorityMedium");
         priorityMediumLabel.classList.add("form-textarea-label");
+        priorityMediumLabel.classList.add("priority-button");
         priorityMediumLabel.classList.add("medium");
         priorityMediumLabel.value = "medium";
         priorityMediumLabel.innerText = "MEDIUM";
@@ -186,6 +193,7 @@ class UI {
         const priorityHighLabel = document.createElement("label");
         priorityHighLabel.setAttribute("for", "priorityHigh");
         priorityHighLabel.classList.add("form-textarea-label");
+        priorityHighLabel.classList.add("priority-button");
         priorityHighLabel.classList.add("high")
         priorityHighLabel.value = "high";
         priorityHighLabel.innerText = "HIGH";
@@ -222,6 +230,8 @@ class UI {
         textarea.classList.add("textarea-nonresize");
         textarea.classList.add("project-textarea");
         textarea.placeholder = "Enter Name of Project Here";
+        textarea.required = true;
+        textarea.maxLength = "30";
         wrapper.appendChild(textarea);
 
         const confirmButton = document.createElement("input");
@@ -275,7 +285,7 @@ class UI {
     }
 
     handlePriorityChange(e) {
-        const priorityButtons = document.querySelectorAll(".form-textarea-label");
+        const priorityButtons = document.querySelectorAll(".priority-button");
         Array.from(priorityButtons).forEach(element => {
             element.classList.remove("active");
         });
@@ -313,7 +323,6 @@ class UI {
         else if (target.getAttribute("id") === "project") {
             projectBody.classList.toggle("active");
         }
-        
     }
 
     handleTaskCreation(e) {
@@ -336,7 +345,7 @@ class UI {
         this.addElementToParent(taskListElement, taskArea);
         
         this.resetFormValues();
-        this.toggleForm();
+        this.toggleOverlay("content");
     }
 
     handleProjectCreation(e) {
@@ -353,7 +362,8 @@ class UI {
         this.initProjectButtons();
 
         this.resetFormValues();
-        this.toggleForm();
+        this.toggleOverlay("content");
+
     }
 
     resetFormValues() {
@@ -368,6 +378,11 @@ class UI {
         console.log(priorityElements);
         Array.from(priorityElements).forEach(element => {element.classList.remove("active")});
 
+        const priorityInputs = document.querySelectorAll(".form-textarea-priority-indicator");
+        Array.from(priorityInputs).forEach(element => {
+            element.checked = false;
+        });
+
         // reset which tab open
         const taskBody = document.getElementById("task-wrapper");
         const projectBody = document.getElementById("project-wrapper");
@@ -380,10 +395,27 @@ class UI {
         Array.from(selectors).forEach(element => {
             element.classList.remove("active");
         })
-        console.log(selectors);
         Array.from(selectors)[0].classList.toggle("active");
         //console.log(projectStorage.getProjectList()[activeProject]);
         
+    }
+
+    resetEditPageValues() {
+        // reset textarea
+        const textareas = document.querySelectorAll(".textarea-nonresize");
+        Array.from(textareas).forEach(element => element.value = "");
+
+        const dueDateElement = document.querySelector(".edit-textarea-datecalendar");
+        dueDateElement.value = "";
+        // reset priority
+        const priorityElements = document.querySelectorAll(".edit-textarea-label");
+        console.log(priorityElements);
+        Array.from(priorityElements).forEach(element => {element.classList.remove("active")});
+
+        const priorityInputs = document.querySelectorAll(".edit-textarea-priority-indicator");
+        Array.from(priorityInputs).forEach(element => {
+            element.checked = false;
+        });
     }
 
     createNav() {
@@ -475,19 +507,24 @@ class UI {
         
         //container for all tasks
         const container = document.createElement("div");
-        container.classList.add("task-container");
+        container.classList.add("project-container");
 
         const projectTitle = document.createElement("div");
         projectTitle.classList.add("task-container-title");
         projectTitle.innerText = project.getName();
         container.appendChild(projectTitle);
 
+        const tasksContainer = document.createElement("div");
+        tasksContainer.classList.add("tasklist-container")
+
         // for each task create its own div element and add it to container
         const taskList = project.getTaskList();
         taskList.forEach(element => {
             const taskContainer = this.createTaskDivElement(element);
-            container.appendChild(taskContainer);
+            tasksContainer.appendChild(taskContainer);
         });
+
+        container.appendChild(tasksContainer);
 
         return container;
     }
@@ -527,8 +564,11 @@ class UI {
         taskEditWrap.appendChild(taskEdit);
 
         const taskDelete = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-        taskDelete.innerHTML += '<?xml version="1.0" encoding="utf-8"?><svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 1000 1000" enable-background="new 0 0 1000 1000" xml:space="preserve"><metadata> Svg Vector Icons : http://www.onlinewebfonts.com/icon </metadata><g><g transform="translate(0.000000,512.000000) scale(0.100000,-0.100000)"><path d="M3694.7,4987.6c-222.9-59.6-411.1-220.9-520.7-440l-65.3-132.6l-5.8-380.4l-7.7-380.4H1848.4c-1189.2,0-1252.6-1.9-1319.9-36.5c-134.5-69.2-190.2-267.1-107.6-380.4c84.5-111.4,130.6-130.6,345.8-136.4c186.4-7.7,199.8-9.6,209.4-48c3.8-23.1,220.9-1640.7,480.3-3596.6c259.4-1953.9,478.4-3575.4,484.2-3602.3c5.8-26.9,40.3-105.7,76.9-176.8c109.5-209.4,307.4-368.9,534.1-426.5c99.9-26.9,399.6-30.7,2449.6-30.7c2551.4,0,2457.3-3.8,2651.3,109.5c219,128.7,384.2,366.9,422.7,611c9.6,63.4,224.8,1681.1,480.3,3592.7c253.6,1913.6,464.9,3496.7,470.7,3519.7c9.6,38.4,23.1,40.3,209.4,48c167.1,3.8,209.4,13.4,253.6,46.1c90.3,67.2,128.7,134.5,128.7,224.8c0,105.7-49.9,190.2-140.2,242.1c-71.1,40.3-88.4,40.3-1321.8,40.3H6907l-7.7,380.4l-5.8,380.4l-65.3,132.6c-111.4,222.9-299.7,380.4-530.3,440C6132.8,5031.8,3856.1,5029.8,3694.7,4987.6z M6225,4422.7c107.6-65.3,121-115.3,121-461.1v-307.4H5001.1H3656.3v307.4c0,345.8,13.5,395.8,121,461.1c59.6,36.5,105.7,38.4,1223.8,38.4C6119.3,4461.2,6165.4,4459.2,6225,4422.7z M8455.5,2978c-7.7-67.2-222.9-1669.6-474.6-3563.9c-351.6-2635.9-466.9-3456.3-493.7-3498.6c-17.3-32.7-65.3-76.8-103.8-98c-73-40.3-73-40.3-2382.3-40.3c-2080.7,0-2315.1,3.8-2374.7,30.7c-142.2,67.2-101.8-165.2-612.9,3673.4c-257.4,1930.8-472.6,3533.2-476.5,3563.9l-7.7,51.9h3471.7h3471.7L8455.5,2978z"/><path d="M3051.1,2388.1c-65.3-38.4-111.4-101.8-130.6-172.9c-5.8-25,71.1-1283.4,171-2795.4c151.8-2267.1,188.3-2760.8,215.2-2816.5c99.9-205.6,388.1-201.7,489.9,3.8c34.6,69.2,32.7,119.1-149.9,2843.4c-201.7,3035.6-180.6,2839.6-317,2929.9C3250.9,2434.3,3131.8,2438.1,3051.1,2388.1z"/><path d="M4872.4,2393.9c-34.6-17.3-80.7-59.6-101.8-94.1c-38.4-61.5-38.4-92.2-38.4-2862.6c0-2774.3,0-2801.2,38.4-2862.6c99.9-163.3,361.2-163.3,461.1,0c38.4,61.5,38.4,88.4,38.4,2862.6s0,2801.2-38.4,2862.6C5160.6,2415,4999.2,2455.4,4872.4,2393.9z"/><path d="M6672.6,2380.5c-136.4-90.3-115.3,105.7-317-2928c-184.4-2739.7-186.4-2772.3-149.9-2843.4c101.8-207.5,390-211.3,489.9-5.8c26.9,55.7,63.4,528.3,207.5,2708.9c96.1,1452.5,176.8,2707,178.7,2785.8c3.8,123-1.9,153.7-40.3,207.5C6953.1,2428.5,6791.7,2461.1,6672.6,2380.5z"/></g></g></svg>';
+        taskDelete.innerHTML += '<path d="M0 281.296l0 -68.355q1.953 -37.107 29.295 -62.496t64.449 -25.389l93.744 0l0 -31.248q0 -39.06 27.342 -66.402t66.402 -27.342l312.48 0q39.06 0 66.402 27.342t27.342 66.402l0 31.248l93.744 0q37.107 0 64.449 25.389t29.295 62.496l0 68.355q0 25.389 -18.553 43.943t-43.943 18.553l0 531.216q0 52.731 -36.13 88.862t-88.862 36.13l-499.968 0q-52.731 0 -88.862 -36.13t-36.13 -88.862l0 -531.216q-25.389 0 -43.943 -18.553t-18.553 -43.943zm62.496 0l749.952 0l0 -62.496q0 -13.671 -8.789 -22.46t-22.46 -8.789l-687.456 0q-13.671 0 -22.46 8.789t-8.789 22.46l0 62.496zm62.496 593.712q0 25.389 18.553 43.943t43.943 18.553l499.968 0q25.389 0 43.943 -18.553t18.553 -43.943l0 -531.216l-624.96 0l0 531.216zm62.496 -31.248l0 -406.224q0 -13.671 8.789 -22.46t22.46 -8.789l62.496 0q13.671 0 22.46 8.789t8.789 22.46l0 406.224q0 13.671 -8.789 22.46t-22.46 8.789l-62.496 0q-13.671 0 -22.46 -8.789t-8.789 -22.46zm31.248 0l62.496 0l0 -406.224l-62.496 0l0 406.224zm31.248 -718.704l374.976 0l0 -31.248q0 -13.671 -8.789 -22.46t-22.46 -8.789l-312.48 0q-13.671 0 -22.46 8.789t-8.789 22.46l0 31.248zm124.992 718.704l0 -406.224q0 -13.671 8.789 -22.46t22.46 -8.789l62.496 0q13.671 0 22.46 8.789t8.789 22.46l0 406.224q0 13.671 -8.789 22.46t-22.46 8.789l-62.496 0q-13.671 0 -22.46 -8.789t-8.789 -22.46zm31.248 0l62.496 0l0 -406.224l-62.496 0l0 406.224zm156.24 0l0 -406.224q0 -13.671 8.789 -22.46t22.46 -8.789l62.496 0q13.671 0 22.46 8.789t8.789 22.46l0 406.224q0 13.671 -8.789 22.46t-22.46 8.789l-62.496 0q-13.671 0 -22.46 -8.789t-8.789 -22.46zm31.248 0l62.496 0l0 -406.224l-62.496 0l0 406.224z"/>';
         taskDelete.classList.add("task-container-delete");
+        taskDelete.setAttributeNS(null, "viewBox", "0 0 900 875");
+
+        this.initTaskListButtons(taskDelete, taskEditWrap);
 
         container.appendChild(taskCompleteBox);
         container.appendChild(taskName);
@@ -538,6 +578,170 @@ class UI {
         container.appendChild(taskDelete);
 
         return container;
+    }
+
+    createEditPage() {
+        const container = document.createElement("div");
+        container.id ="edit-overlay";
+
+        const editPage = document.createElement("div");
+        editPage.classList.add("edit-page");
+        editPage.id = "edit-page";
+                
+        const header = document.createElement("div");
+        header.classList.add("edit-header");
+        header.innerText = "Edit";
+        editPage.appendChild(header);
+
+        const body = document.createElement("div");
+        body.classList.add("edit-body");
+
+        const infoArea = document.createElement("div");
+        infoArea.classList.add("edit-infoarea");
+        infoArea.appendChild(this.createEditBodyElements());
+        infoArea.firstChild.classList.toggle("active");
+
+        body.appendChild(infoArea);
+        
+        editPage.appendChild(body);
+
+        const button = document.createElement("button");
+        button.classList.add("close-edit");
+        button.innerText = "Close";
+        button.addEventListener("click", () => {
+            this.toggleOverlay("content");
+
+            
+        });
+        editPage.appendChild(button);
+
+        container.appendChild(editPage);
+
+        return container;
+    }
+
+    createEditBodyElements() {
+        const wrapper = document.createElement("form");
+        wrapper.classList.add("edit-body-wrapper");
+        wrapper.setAttribute("onsubmit", "return false");
+        wrapper.setAttribute("id", "edit-wrapper");
+
+        // for todo title
+        const titleArea = document.createElement("textarea");
+        titleArea.classList.add("edit-textarea-title");
+        titleArea.placeholder = "Enter Task Here";
+        titleArea.classList.add("textarea-nonresize");
+        titleArea.required = true;
+        titleArea.maxLength = "30";
+        wrapper.appendChild(titleArea);
+
+        // for todo description
+        const descArea = document.createElement("textarea");
+        descArea.classList.add("edit-textarea-desc");
+        descArea.placeholder = "Enter Task description here";
+        descArea.classList.add("textarea-nonresize");
+        
+        wrapper.appendChild(descArea);
+
+        // for todo due date
+        const dateArea = document.createElement("div");
+        dateArea.classList.add("edit-textarea-date");
+        const dateText = document.createElement("div");
+        dateText.classList.add("edit-textarea-datetext");
+        dateText.innerText = "Due Date: ";
+        dateArea.appendChild(dateText);
+        const dateCalendar = document.createElement("input");
+        dateCalendar.classList.add("edit-textarea-datecalendar");
+        dateCalendar.type = "date";
+        dateCalendar.required = true;
+        dateArea.appendChild(dateCalendar);
+        wrapper.appendChild(dateArea);
+
+        //for todo priority
+        const priorityArea = document.createElement("div");
+        priorityArea.classList.add("edit-textarea-priority");
+
+        const priorityLow = document.createElement("input");
+        priorityLow.classList.add("edit-textarea-priority-indicator");
+        //priorityLow.classList.add("low");
+        priorityLow.setAttribute("id", "priorityLowEdit");
+        priorityLow.type = "radio";
+        priorityLow.value = "low";
+        priorityLow.required = true;
+        priorityLow.setAttribute("name", "create-priority");
+
+        const priorityLowLabel = document.createElement("label");
+        priorityLowLabel.setAttribute("for", "priorityLowEdit");
+        priorityLowLabel.classList.add("edit-textarea-label");
+        priorityLowLabel.classList.add("priority-button");
+        priorityLowLabel.classList.add("low");
+        priorityLowLabel.value = "low";
+        priorityLowLabel.innerText = "LOW";
+
+        const priorityMedium = document.createElement("input");
+        priorityMedium.classList.add("edit-textarea-priority-indicator");
+        //priorityMedium.classList.add("medium");
+        priorityMedium.setAttribute("id", "priorityMediumEdit");
+        priorityMedium.type = "radio";
+        priorityMedium.value = "medium";
+        priorityMedium.required = true;
+        priorityMedium.setAttribute("name", "create-priority");
+
+        const priorityMediumLabel = document.createElement("label");
+        priorityMediumLabel.setAttribute("for", "priorityMediumEdit");
+        priorityMediumLabel.classList.add("edit-textarea-label");
+        priorityMediumLabel.classList.add("priority-button");
+        priorityMediumLabel.classList.add("medium");
+        priorityMediumLabel.value = "medium";
+        priorityMediumLabel.innerText = "MEDIUM";
+
+        const priorityHigh = document.createElement("input");
+        priorityHigh.classList.add("edit-textarea-priority-indicator");
+        //priorityHigh.classList.add("high");
+        priorityHigh.setAttribute("id", "priorityHighEdit");
+        priorityHigh.type = "radio";
+        priorityHigh.value = "high";
+        priorityHigh.required = true;
+        priorityHigh.setAttribute("name", "create-priority");
+
+        const priorityHighLabel = document.createElement("label");
+        priorityHighLabel.setAttribute("for", "priorityHighEdit");
+        priorityHighLabel.classList.add("edit-textarea-label");
+        priorityHighLabel.classList.add("priority-button");
+        priorityHighLabel.classList.add("high")
+        priorityHighLabel.value = "high";
+        priorityHighLabel.innerText = "HIGH";
+
+        priorityArea.appendChild(priorityLow);
+        priorityArea.appendChild(priorityLowLabel);
+        priorityArea.appendChild(priorityMedium);
+        priorityArea.appendChild(priorityMediumLabel);
+        priorityArea.appendChild(priorityHigh);
+        priorityArea.appendChild(priorityHighLabel);
+
+        wrapper.appendChild(priorityArea);
+
+        // for submit button
+        const confirmButton = document.createElement("input");
+        confirmButton.classList.add("edit-submit-task");
+        confirmButton.type = "submit";
+        confirmButton.value = "Confirm";
+        confirmButton.setAttribute("id", "task");
+
+        wrapper.appendChild(confirmButton);
+
+        return wrapper;
+    }
+
+    
+
+    renderAllProjects() {
+        const sidebarBody = document.querySelector(".sidebar-body");
+        const projectList = projectStorage.getProjectList();
+        projectList.forEach(element => {
+            const projectElement = this.createProjectElement(element);
+            this.addElementToParent(projectElement, sidebarBody);
+        });
     }
 
     initProjectButtons() {
@@ -558,16 +762,113 @@ class UI {
             element.addEventListener("click", boundHandleDeleteProject);
         })
     }
-    
-    renderAllProjects() {
-        const sidebarBody = document.querySelector(".sidebar-body");
-        const projectList = projectStorage.getProjectList();
-        projectList.forEach(element => {
-            const projectElement = this.createProjectElement(element);
-            this.addElementToParent(projectElement, sidebarBody);
+
+    initTaskListButtons(deleteElement, editElement) {
+        this.initDeleteTaskButton(deleteElement);
+        this.initEditTaskButton(editElement);
+        this.initEditTaskPageElements();
+    }
+
+    initEditTaskButton(element) {
+        const boundOpenEditTaskPage = this.handleOpenEditTaskPage.bind(this);
+        element.addEventListener("click", (e) => {
+            boundOpenEditTaskPage(e);
         });
     }
 
+    initDeleteTaskButton(element) {
+        element.addEventListener("click", this.handleDeleteTask);
+        element.firstChild.addEventListener("click", this.handleDeleteTask);
+    }
+
+    initEditTaskPageElements() {
+        // initialising priority switching labels        
+        const priorityButtons = document.querySelectorAll(".edit-textarea-label");
+        Array.from(priorityButtons).forEach(element => {
+            element.addEventListener("click", this.handlePriorityChange);
+        });
+
+        // initialising form submissions
+        const form = document.getElementById("edit-wrapper");
+        const boundHandleEditTask = this.handleEditTask.bind(this);
+        form.addEventListener("submit", boundHandleEditTask);
+
+    }
+
+    handleEditTask(e) {
+        //get active project ID, then get task and edit it
+        const activeProjectID = Array.from(document.getElementsByClassName("project-tag active"))[0].getAttribute("id");
+        const activeProject = projectStorage.getProject(parseInt(activeProjectID));
+
+        const taskListContainer = document.querySelector(".tasklist-container");
+
+        // getting task index and then task       
+        const taskIndex = Array.from(taskListContainer.children).indexOf(this.currentEdit);
+        let task;
+        if (taskIndex >= 0) task = activeProject.getTaskAt(taskIndex);
+        console.log(taskIndex, task, this.currentEdit);   
+
+        // get values from DOM elements
+        const title = document.querySelector(".edit-textarea-title").value;
+        const desc = document.querySelector(".edit-textarea-desc").value;
+        const dueDate = document.querySelector(".edit-textarea-datecalendar").value;
+        const priority = document.getElementsByClassName("edit-textarea-label active")[0].value;
+
+        // update new task attributes
+        task.setName(title);
+        task.setDescription(desc);
+        task.setDueDate(dueDate);
+        task.setPriority(priority);
+
+        // update task DOM elemeent
+        const divChildren = Array.from(this.currentEdit.children);
+        divChildren[1].innerText = title;
+        //divChildren[2].innerText = desc;
+        divChildren[3].innerText = dueDate;
+        
+        //update priority
+        this.currentEdit.classList.remove(this.currentEdit.classList.item(1));
+        switch (priority) {
+            case ("low"):
+                this.currentEdit.classList.toggle("priority-low");
+            case ("medium"):
+                this.currentEdit.classList.toggle("priority-medium");
+            case ("high"):
+                this.currentEdit.classList.toggle("priority-high");
+        }
+
+        this.toggleOverlay("content");
+        this.resetEditPageValues();
+
+
+    }   
+
+    handleOpenEditTaskPage(e) {
+        const editPage = document.getElementById("edit-overlay");
+        this.toggleOverlay("edit");
+        
+        if (e.target.nodeName === "svg") this.currentEdit = e.target.parentElement;
+        else if (e.target.nodeName === "path") this.currentEdit = e.target.parentElement.parentElement;
+    }
+
+    handleDeleteTask(e) {
+        const target = e.target;
+        const taskContainer = e.target.parentElement;
+
+        // delete from project
+        const projectID = document.getElementsByClassName("project-tag active")[0].getAttribute("id");
+        const project = projectStorage.getProject(parseInt(projectID));
+
+        const taskListContainer = document.querySelector(".tasklist-container");
+        const taskIndex = Array.from(taskListContainer.children).indexOf(taskContainer);
+        project.removeTaskAtIndex(taskIndex);
+
+        console.log(project.getTaskList(), taskContainer, target);
+        //delete DOM element
+        
+        taskContainer.remove();
+    }
+    
     handleDeleteProject(e) {
         const projectTag = e.target.parentElement.firstChild;
         const projectID = projectTag.getAttribute("id")
@@ -591,8 +892,8 @@ class UI {
     
     handleAddProject(e) {
         this.resetFormValues();
+        this.toggleOverlay("form");
 
-        this.toggleForm();
     }
 
     handleProjectOpen(e) {
@@ -640,11 +941,24 @@ class UI {
         projectStorage.addProject(project);
     }
 
-    toggleForm() {
-        const blurTarget = document.getElementById("content");
-        blurTarget.classList.toggle("active");
-        const form = document.getElementById("form-overlay");
-        form.classList.toggle("active");
+    toggleOverlay(activeOverlay) {
+        // remove active for each overlay
+        const overlays = document.body.children;
+        Array.from(overlays).forEach(element => {
+            element.classList.remove("active");
+        });
+
+        switch (activeOverlay){
+            case ("content"):
+                document.getElementById("content").classList.toggle("active");
+                break;
+            case ("edit"):
+                document.getElementById("edit-overlay").classList.toggle("active");
+                break;
+            case ("form"):
+                document.getElementById("form-overlay").classList.toggle("active");
+                break;
+        }
 
     }
 

@@ -7,6 +7,13 @@ export default class ProjectStorage {
         return this.projectList;
     }
 
+    getProject(id) {
+        for (const project of this.projectList) {
+            if (project.getID() === id) return project;
+        }
+        return -1;
+    }
+
     addProject(project) {
         this.projectList.push(project);
     }

@@ -13,8 +13,20 @@ export default class Project {
         this.taskList.push(task);
     }
 
-    removeTask(taskIndex) {
+    getTaskAt(index) {
+        return this.taskList[index];
+    }
+
+    removeTaskAtIndex(taskIndex) {
         this.taskList.splice(taskIndex, 1);
+    }
+
+    removeTask(task) {
+        for (let i = 0; i< this.taskList.length; i++) {
+            if (task == this.taskList[i]) {
+                this.taskList.splice(i, 1);
+            }
+        }
     }
 
     getName() {
