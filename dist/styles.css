@@ -1,18 +1,23 @@
 body {
-    font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+    font-family:"Roboto",sans-serif;
     margin:0;
-    height:100vh;
+    height:100%;
+    min-height:100vh;
+    word-break:keep-all;
     }
     
     #content {
     filter:blur(20px);
-    }
-
-    #content.active {
-        filter: none;
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
     }
     
-    #form-overlay {
+    #content.active {
+    filter:none;
+    }
+    
+    #form-overlay,#edit-overlay,#details-overlay {
     position:fixed;
     top:0;
     left:0;
@@ -26,7 +31,7 @@ body {
     transition:.5s;
     }
     
-    #form-overlay.active {
+    #form-overlay.active,#edit-overlay.active,#details-overlay.active {
     visibility:visible;
     opacity:1;
     transition:.5s;
@@ -34,71 +39,107 @@ body {
     }
     
     .new-item-form {
+    display:flex;
+    flex-direction:column;
     padding:50px;
-    box-shadow:0 5px 30px rgba(0,0,0,.30);
-    background-color:#40BCD8;
-    color:#fff;
+    box-shadow:0 5px 30px rgba(0,0,0,0.3);
+    background-color:#62a95b;
+    color:#000;
     width:70vw;
     max-width:700px;
     height:50vh;
     max-height:300px;
     }
     
-    .form-header,.form-body,.form-infoarea,.form-sidebar {
-    border-style:solid;
-    }
-    
-    .form-header {
+    .form-header,.edit-header,.details-header {
+    display:flex;
+    align-items:center;
     height:10%;
-    font-size:24px;
+    font-size:28px;
+    padding-bottom:10px;
+    border-bottom:1px solid #000;
     }
     
-    .form-body, .edit-body {
+    .form-body,.edit-body,.details-body {
     display:flex;
     height:90%;
     }
     
     .form-sidebar {
-    width:20%;
+    width:auto;
+    border-right:1px solid #000;
     }
     
     .form-sidebar-selector {
+    width:auto;
     padding:10px;
     margin:5px;
     border-radius:5px;
+    font-size:2rem;
     }
     
     .form-sidebar-selector:hover {
-    background-color:#1C77C3;
+    background-color:#aceca1;
+    color:#000;
     }
     
     .form-sidebar-selector.active {
-    background-color:#F39237;
+    background-color:#c9f2c7;
+    color:#000;
     }
     
-    .form-infoarea, .edit-infoarea {
-    width:80%;
+    .form-infoarea,.edit-infoarea {
+    width:100%;
+    }
+    
+    .form-submit-project {
+    margin-top:auto;
     }
     
     .textarea-nonresize {
     resize:none;
+    padding:0;
+    width:auto;
+    border-radius:5px;
+    border-style:none;
+    border:none;
+    outline:none;
+    background-color:#62a95b;
+    color:#000;
     }
     
-    .form-body-wrapper, .edit-body-wrapper {
+    .form-body-wrapper,.edit-body-wrapper {
     display:none;
     }
     
-    .form-body-wrapper.active, .edit-body-wrapper.active {
+    .form-body-wrapper.active,.edit-body-wrapper.active {
     display:flex;
     flex-direction:column;
-    height:100%;
+    height:98%;
+    padding:1%;
     }
     
-    .form-textarea-priority, .edit-textarea-priority {
+    .form-textarea-date,.edit-textarea-date {
+    margin-top:auto;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    font-size:2rem;
+    }
+    
+    .form-textarea-datecalendar,.edit-textarea-datecalendar {
+    border-radius:5px;
+    }
+    
+    .form-textarea-priority,.edit-textarea-priority {
+    display:flex;
+    align-items:center;
     margin-top:10px;
+    height:auto;
+    font-size:2rem;
     }
     
-    .form-textarea-priority-indicator, .edit-textarea-priority-indicator {
+    .form-textarea-priority-indicator,.edit-textarea-priority-indicator {
     position:relative;
     left:2.2rem;
     height:1px;
@@ -135,47 +176,80 @@ body {
     color:#fff;
     }
     
-    .form-textarea-label, .edit-textarea-label {
+    .form-textarea-label,.edit-textarea-label {
+    font-size:12px;
+    font-weight:700;
     border-style:solid;
     padding:3px;
+    border-radius:5px;
     }
     
-    .form-submit-task, .edit-submit-task {
-    margin-top:auto;
+    .form-submit-task,.edit-submit-task,.form-submit-project {
+    margin-left:auto;
+    border-radius:5px;
+    border-style:none;
+    }
+    
+    .form-submit-task:hover,.edit-submit-task:hover {
+    background-color:#c9f2c7;
+    }
+    
+    .form-submit-task:active,.edit-submit-task:active {
+    background-color:#1aa913;
     }
     
     .navbar {
-    height:12.5vh;
+    height:50px;
     display:flex;
     align-items:center;
-    background-color:#F39237;
+    background-color:#96be8c;
     color:#fff;
+    }
+    
+    .navbar-burgermenu {
+    display:none;
+    flex-direction:column;
+    justify-content:space-between;
+    width:30px;
+    height:21px;
+    margin-left:auto;
+    margin-right:20px;
+    }
+    
+    .navbar-burgermenu-span {
+    width:100%;
+    height:3px;
+    background-color:#000;
+    border-radius:10px;
     }
     
     .title {
     margin-left:16px;
-    font-size:48px;
+    font-size:24px;
     }
     
     .container {
     display:flex;
-    height:87.5vh;
+    height:100%;
+    flex:1 1 auto;
     }
     
     .sidebar,.task-area {
-    height:100%;
+    height:auto;
     }
     
     .sidebar-title,.task-area-title {
-    font-size:24px;
+    font-size:3rem;
     }
     
     .sidebar {
     display:flex;
     flex-direction:column;
-    width:350px;
-    background-color:#1C77C3;
-    color:#fff;
+    width:25vw;
+    max-width:250px;
+    background-color:#aceca1;
+    color:#000;
+    border-right:1px solid #28282b;
     }
     
     .sidebar-title {
@@ -190,13 +264,10 @@ body {
     .sidebar-button {
     height:50px;
     width:100%;
+    font-size:32px;
     margin-top:auto;
     border-style:none;
-    background-color:#39A9DB;
-    }
-    
-    .sidebar-button:hover {
-    background-color:#40BCD8;
+    background-color:#1aa913;
     }
     
     .project-tag {
@@ -209,12 +280,8 @@ body {
     border-radius:5px;
     }
     
-    .project-tag:hover,.project-tag.active {
-    background-color:#39A9DB;
-    }
-    
     .delete-project {
-    background-color:#1C77C3;
+    background-color:#aceca1;
     border-style:none;
     border-radius:5px;
     margin:10px;
@@ -222,11 +289,11 @@ body {
     }
     
     .delete-project:hover {
-    background-color:#39A9DB;
+    background-color:#96be8c;
     }
     
     .task-area {
-    background-color:#40BCD8;
+    background-color:#c9f2c7;
     width:100%;
     }
     
@@ -235,7 +302,7 @@ body {
     }
     
     .task-area-title {
-    font-size:48px;
+    font-size:32px;
     }
     
     .project-container {
@@ -244,15 +311,31 @@ body {
     }
     
     .task-container-title {
-    font-size:32px;
+    font-size:4rem;
+    margin:10px;
     }
     
     .task-container-task {
     display:flex;
-    background-color:#fff;
+    background-color:#7cbd76;
     padding:8px;
     align-items:center;
+    margin:10px;
     margin-top:12px;
+    transition:.5s;
+    font-size:2rem;
+    max-height:35px;
+    }
+    
+    .task-container-task:hover {
+    transform-origin:50% 50%;
+    transform:scale(1.006);
+    box-shadow:3px 3px 5px 2px #000;
+    }
+    
+    .task-container-task.active {
+    filter:brightness(80%);
+    opacity:80%;
     }
     
     .task-container-priority {
@@ -272,76 +355,219 @@ body {
     }
     
     .priority-high {
-    border-left:10px solid red;
+    border-left:5px solid red;
     }
     
     .priority-medium {
-    border-left:10px solid #ff8c00;
+    border-left:5px solid #ff8c00;
     }
     
     .priority-low {
-    border-left:10px solid #32cd32;
+    border-left:5px solid #32cd32;
     }
     
     .task-container-checkbox {
-    margin-right:1.5rem;
+    margin:0;
+    margin-right:1rem;
+    height:1.5rem;
     }
     
     .task-container-name {
     margin-right:auto;
     word-break:break-all;
-    max-width:30%;
+    }
+    
+    .task-container-name.active {
+    text-decoration:line-through;
     }
     
     .task-container-details,.task-container-duedate,.task-container-edit,.task-container-delete {
-    margin-right:1.5rem;
+    margin-right:1rem;
     }
     
     .task-container-details {
-    font-size:12px;
     border-style:solid;
-    padding:5px;
+    padding:3px;
+    transition:.5s;
+    font-size:1.5rem;
+    }
+    
+    .task-container-details:hover {
+    background-color:#000;
+    border-color:#000;
+    color:#fff;
+    }
+    
+    .task-container-details.active {
+    background-color:#000;
+    color:#fff;
+    }
+    
+    .task-container-duedate {
+    font-size:1.5rem;
     }
     
     .task-container-edit,.task-container-delete {
-    font-size:12px;
     padding:4px;
-    width:15px;
-    height:20px;
+    width:1.75rem;
+    max-width:15px;
+    height:2.25rem;
+    max-height:20px;
+    transition:.5s;
     }
     
     .task-container-edit:hover,.task-container-delete:hover {
-    fill:red;
+    fill:#13900c;
     }
-
-    #edit-overlay {
-        position:fixed;
-        top:0;
-        left:0;
-        display:flex;
-        justify-content:center;
-        align-items:center;
-        width:100%;
-        height:100%;
-        visibility:hidden;
-        opacity:0;
-        transition:.5s;
+    
+    .edit-page,.details-page {
+    padding:50px;
+    box-shadow:0 5px 30px rgba(0,0,0,0.3);
+    background-color:#62a95b;
+    color:#000;
+    width:70vw;
+    max-width:700px;
+    height:50vh;
+    max-height:300px;
     }
-
-    #edit-overlay.active {
-        visibility:visible;
-    opacity:1;
+    
+    .details-header {
+    display:flex;
+    font-size:3rem;
+    width:100%;
+    }
+    
+    .details-body {
+    flex-direction:column;
+    }
+    
+    .details-body-title {
+    font-size:32px;
+    margin-bottom:24px;
+    }
+    
+    .details-body-details-name {
+    word-break:break-all;
+    }
+    
+    .close-form,.close-edit {
+    margin-top:auto;
+    margin-left:auto;
+    background-color:#62a95b;
+    border:none;
+    font-size:large;
+    }
+    
+    .close-form:hover,.close-edit:hover {
+    cursor:pointer;
+    }
+    
+    .sidebar-button:hover,.project-tag:hover,.project-tag.active {
+    background-color:#629460;
+    }
+    
+    .sidebar-body,.details-body-project,.details-body-priority,.details-body-dueDate,.details-body-details {
+    font-size:2rem;
+    }
+    
+    @media screen and (max-height: 500px) {
+    .navbar {
+    height:50px;
+    }
+    
+    .sidebar {
+    display:flex;
+    flex-direction:column;
+    width:25vw;
+    height:500px;
+    background-color:#aceca1;
+    color:#000;
+    }
+    
+    .sidebar-button {
+    height:50px;
+    width:100%;
+    margin-top:263px;
+    color:#000;
+    border-right:1px solid #28282b;
+    }
+    
+    .task-area {
+    background-color:#c9f2c7;
+    width:100%;
+    height:500px;
+    }
+    }
+    
+    @media screen and (min-width: 1000px) {
+    .task-container-task {
+    font-size:18px;
+    }
+    
+    .task-container-title {
+    font-size:48px;
+    margin:10px;
+    }
+    
+    .sidebar-title {
+    font-size:36px;
+    }
+    
+    .project-tag {
+    font-size:28px;
+    }
+    }
+    
+    @media screen and (max-width: 600px) {
+    .navbar {
+    height:50px;
+    font-weight:400;
+    }
+    
+    .navbar-burgermenu {
+    display:flex;
+    }
+    
+    .sidebar {
+    position:absolute;
+    left:-300px;
+    width:50vw;
     transition:.5s;
-    z-index:1000;
     }
-
-    .edit-page {
-        padding:50px;
-        box-shadow:0 5px 30px rgba(0,0,0,.30);
-        background-color:#40BCD8;
-        color:#fff;
-        width: 70vw;
-        max-width: 700px;
-        height: 50vh;
-        max-height: 300px;
+    
+    .sidebar.active {
+    display:flex;
+    position:absolute;
+    left:0;
+    top:50px;
+    flex:1 1 auto;
+    z-index:10000;
+    border-bottom:1px solid #000;
+    transition:.5s;
+    width:50vw;
+    }
+    }
+    
+    @media (max-width: 1200px) {
+    html {
+    font-size:56.75%;
+    }
+    }
+    
+    @media (max-width: 1000px) {
+    html {
+    font-size:56.75%;
+    }
+    }
+    
+    @media (max-width: 800px) {
+    html {
+    font-size:50%;
+    }
+    }
+    
+    @media (max-width: 700px) {
+    html {
+    font-size:43.75%;
+    }
     }
