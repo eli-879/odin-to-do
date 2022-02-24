@@ -52,7 +52,7 @@ class UI {
 		} else {
 			this.projectStorage = new ProjectStorage([]);
 			let defaultProject = this.newProject("Today", 0);
-			let defaultTask1 = this.newTask("washing", "wash the clothes", "tomorrow", "high");
+			let defaultTask1 = this.newTask("Get The Inferno Cape", "Don't die to Zuk!", "28/02/2022", "high");
 			defaultProject.addTask(defaultTask1);
 			this.addToProjectStorage(defaultProject);
 			let defaultProject2 = this.newProject("Week", 1);
