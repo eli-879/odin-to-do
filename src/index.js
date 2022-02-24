@@ -910,7 +910,6 @@ class UI {
 
 	handleOpenDetailsPage(e) {
 		// set correct overlay
-		const target = e.target;
 		this.toggleOverlay("details");
 
 		// populate details page with correct attributes
@@ -996,7 +995,6 @@ class UI {
 	}
 
 	handleOpenEditTaskPage(e) {
-		const editPage = document.getElementById("edit-overlay");
 		this.toggleOverlay("edit");
 
 		if (e.target.nodeName === "svg") this.currentEdit = e.target.parentElement;
@@ -1174,15 +1172,6 @@ class UI {
 			case "details":
 				document.getElementById("details-overlay").classList.toggle("active");
 		}
-	}
-
-	setActive(elementList) {
-		elementList.forEach((button) => {
-			if (elementList !== this) {
-				elementList.classList.remove("active");
-			}
-		});
-		button.classList.add("active");
 	}
 }
 const UIManager = new UI();
