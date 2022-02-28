@@ -50,13 +50,16 @@ class UI {
 				this.projectStorage.addProject(newProject);
 			}
 		} else {
+			console.log(format(new Date(2022, 2, 28), "dd/MM/yyyy"));
 			this.projectStorage = new ProjectStorage([]);
 			let defaultProject = this.newProject("Today", 0);
-			let defaultTask1 = this.newTask("Get The Inferno Cape", "Don't die to Zuk!", "28/02/2022", "high");
+			
+			let defaultTask1 = this.newTask("Get The Inferno Cape", "Don't die to Zuk!", format(new Date(2022, 1, 28), "dd/MM/yyyy"), "high");
 			defaultProject.addTask(defaultTask1);
 			this.addToProjectStorage(defaultProject);
 			let defaultProject2 = this.newProject("Week", 1);
 			this.addToProjectStorage(defaultProject2);
+			this.updateProjectStorage();
 		}
 	}
 
@@ -968,13 +971,13 @@ class UI {
 		// update new task attributes
 		task.setName(title);
 		task.setDescription(desc);
-		task.setDueDate(dueDate);
+		task.setDueDate(format(new Date(dueDate), "dd/MM/yyyy"));
 		task.setPriority(priority);
 
 		// update task DOM elemeent
 		const divChildren = Array.from(this.currentEdit.children);
 		divChildren[1].innerText = title;
-		divChildren[3].innerText = dueDate;
+		divChildren[3].innerText = format(new Date(dueDate), "dd/MM/yyyy");
 
 		//update priority
 		this.currentEdit.classList.remove(this.currentEdit.classList.item(1));
